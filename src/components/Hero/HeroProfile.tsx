@@ -1,21 +1,36 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
+import { useHeroProfile, useUpdateHeroProfile } from "../../hooks/useHero";
+import { useParams } from "react-router-dom";
 
 type TStatKey = "str" | "int" | "agi" | "luk";
 
 const initialStats: Record<TStatKey, number> = {
-  str: 3,
-  int: 5,
-  agi: 1,
-  luk: 2,
+  str: 0,
+  int: 0,
+  agi: 0,
+  luk: 0,
 };
 
 export default function HeroProfile() {
-  const [statusPoints, setStatusPoints] = useState(initialStats);
+  const { heroId } = useParams<{ heroId: string }>();
 
-  const TOTAL_POINTS = initialStats
-    ? Object.values(initialStats).reduce((acc, value) => acc + value, 0)
-    : 0;
+  const [statusPoints, setStatusPoints] = useState(initialStats);
+  const { data, isLoading } = useHeroProfile(heroId ?? "");
+  const updateHero = useUpdateHeroProfile(heroId ?? "");
+
+  const TOTAL_POINTS = data ? Object.values(data).reduce((acc, value) => acc + value, 0) : 0;
+
+  useEffect(() => {
+    if (data) {
+      setStatusPoints({
+        str: data.str,
+        int: data.int,
+        agi: data.agi,
+        luk: data.luk,
+      });
+    }
+  }, [data]);
 
   const remainingPoints = useMemo(() => {
     const spent = Object.values(statusPoints).reduce((acc, value) => acc + value, 0);
@@ -43,7 +58,9 @@ export default function HeroProfile() {
           return (
             <StatRow key={key}>
               <StatLabel>{label}</StatLabel>
-              <AdjustButton onClick={() => handleIncrement(key as TStatKey)}>+</AdjustButton>
+              <AdjustButton type="button" onClick={() => handleIncrement(key as TStatKey)}>
+                +
+              </AdjustButton>
               <StatValue>{value}</StatValue>
               <AdjustButton
                 type="button"
@@ -59,7 +76,14 @@ export default function HeroProfile() {
       {TOTAL_POINTS}
       <Summary>
         <SummaryText>剩餘點數：{remainingPoints}</SummaryText>
-        <SaveButton disabled={remainingPoints !== 0}>儲存</SaveButton>
+        <SaveButton
+          onClick={() => {
+            updateHero.mutate(statusPoints);
+          }}
+          disabled={remainingPoints !== 0}
+        >
+          儲存
+        </SaveButton>
       </Summary>
     </Container>
   );

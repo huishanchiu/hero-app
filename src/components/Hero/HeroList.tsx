@@ -1,19 +1,17 @@
 import { Link } from "react-router-dom";
 import styled from "@emotion/styled";
-
-const data = [
-  { id: "1", name: "Arthur" },
-  { id: "2", name: "Diana" },
-  { id: "3", name: "Bruce" },
-  { id: "4", name: "Bruce-P" },
-];
+import { useHeroList } from "../../hooks/useHero";
+import SkeletonList from "../Common/SkeletonList";
 
 export default function HeroListPage() {
+  const { data, isLoading } = useHeroList();
+
   return (
     <CardContainer>
+      {isLoading && <SkeletonList />}
       {data?.map((hero) => (
         <Card key={hero.id} to={`/heroes/${hero.id}`}>
-          <CardImage />
+          <CardImage src={hero.image} />
           <CardName>{hero.name}</CardName>
         </Card>
       ))}
