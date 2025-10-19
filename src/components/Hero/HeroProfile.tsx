@@ -16,7 +16,7 @@ export default function HeroProfile() {
   const { heroId } = useParams<{ heroId: string }>();
 
   const [statusPoints, setStatusPoints] = useState(initialStats);
-  const { data, isLoading } = useHeroProfile(heroId ?? "");
+  const { data } = useHeroProfile(heroId ?? "");
   const updateHero = useUpdateHeroProfile(heroId ?? "");
 
   const TOTAL_POINTS = data ? Object.values(data).reduce((acc, value) => acc + value, 0) : 0;
@@ -58,7 +58,11 @@ export default function HeroProfile() {
           return (
             <StatRow key={key}>
               <StatLabel>{label}</StatLabel>
-              <AdjustButton type="button" onClick={() => handleIncrement(key as TStatKey)}>
+              <AdjustButton
+                type="button"
+                onClick={() => handleIncrement(key as TStatKey)}
+                disabled={remainingPoints === 0}
+              >
                 +
               </AdjustButton>
               <StatValue>{value}</StatValue>
@@ -73,16 +77,16 @@ export default function HeroProfile() {
           );
         })}
       </StatList>
-      {TOTAL_POINTS}
       <Summary>
         <SummaryText>剩餘點數：{remainingPoints}</SummaryText>
         <SaveButton
+          type="button"
           onClick={() => {
             updateHero.mutate(statusPoints);
           }}
           disabled={remainingPoints !== 0}
         >
-          儲存
+          {updateHero.isPending ? "儲存中..." : "儲存"}
         </SaveButton>
       </Summary>
     </Container>

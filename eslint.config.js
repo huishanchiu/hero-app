@@ -26,6 +26,19 @@ export default defineConfig([
     rules: {
       "react/react-in-jsx-scope": "off", //  React 17 開始不需要 import React
       "react-refresh/only-export-components": "off",
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          selector: "interface",
+          format: ["PascalCase"],
+          prefix: ["I"],
+        },
+        {
+          selector: "typeAlias",
+          format: ["PascalCase"],
+          prefix: ["T"],
+        },
+      ],
     },
   },
 ]);

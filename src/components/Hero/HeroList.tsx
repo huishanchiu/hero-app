@@ -2,15 +2,22 @@ import { Link } from "react-router-dom";
 import styled from "@emotion/styled";
 import { useHeroList } from "../../hooks/useHero";
 import SkeletonList from "../Common/SkeletonList";
+import { useState } from "react";
 
 export default function HeroListPage() {
   const { data, isLoading } = useHeroList();
+  const [activeHero, setActiveHero] = useState<string | null>(null);
 
   return (
     <CardContainer>
       {isLoading && <SkeletonList />}
       {data?.map((hero) => (
-        <Card key={hero.id} to={`/heroes/${hero.id}`}>
+        <Card
+          active={hero.id === activeHero}
+          key={hero.id}
+          to={`/heroes/${hero.id}`}
+          onClick={() => setActiveHero(hero.id)}
+        >
           <CardImage src={hero.image} />
           <CardName>{hero.name}</CardName>
         </Card>
@@ -29,7 +36,7 @@ const CardContainer = styled.section`
   width: 100%;
 `;
 
-const Card = styled(Link)`
+const Card = styled(Link)<{ active: boolean }>`
   width: 200px;
   height: 300px;
   display: flex;
@@ -43,10 +50,9 @@ const Card = styled(Link)`
     transform 150ms ease,
     box-shadow 150ms ease;
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-  }
+  border: ${({ active }) => active && "3px #ee0979 solid "};
+  transform: ${({ active }) => active && "translateY(-5px)"};
+  box-shadow: ${({ active }) => active && "10px 10px 10px rgba(0, 0, 0, 0.12)"};
 `;
 
 const CardImage = styled.img`
