@@ -10,3 +10,5 @@ export interface IHeroProfile {
   agi: number;
   luk: number;
 }
+
+export type TStatKey = "str" | "int" | "agi" | "luk";

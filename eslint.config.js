@@ -37,6 +37,10 @@ export default defineConfig([
           selector: "typeAlias",
           format: ["PascalCase"],
           prefix: ["T"],
+          filter: {
+            regex: ".*Props$",
+            match: false,
+          },
         },
       ],
     },
