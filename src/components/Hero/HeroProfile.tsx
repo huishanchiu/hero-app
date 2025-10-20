@@ -1,91 +1,42 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { useHeroProfile, useUpdateHeroProfile } from "../../hooks/useHero";
 import { useParams } from "react-router-dom";
+import { objectEntries } from "../../utils/objectEntries";
+import { useHeroStatPoints } from "../../hooks/useHeroStatPoints";
 import { useToast } from "../../context/ToastProvider";
-import { checkIsEqualObject } from "../../utils/checkIsEqualObject";
-import type { TStatKey } from "../../type/HeroType";
-
-const initialStats: Record<TStatKey, number> = { str: 0, int: 0, agi: 0, luk: 0 };
 
 export default function HeroProfile() {
   const { heroId } = useParams<{ heroId: string }>();
-
-  const [currentPoints, setCurrentPoints] = useState(initialStats);
-  const currentHeroId = useRef<string | null>(null);
-  const prevCount = useRef(initialStats);
-  const { data, isLoading, isError } = useHeroProfile(heroId ?? "");
-  const updateHero = useUpdateHeroProfile(heroId ?? "");
   const { showToast } = useToast();
 
-  const isPointsEqual = checkIsEqualObject(currentPoints, prevCount.current);
-  const buttonDisabled = !data || updateHero.isPending || isPointsEqual;
+  const {
+    currentPoints,
+    remainingPoints,
+    data,
+    isLoading,
+    isError,
+    isPointsEqual,
+    isPending,
+    handleIncrement,
+    handleDecrement,
+    handleSave,
+    resetToSaved,
+  } = useHeroStatPoints(heroId);
 
-  useEffect(() => {
-    if (!heroId || !data) return;
+  const buttonDisabled = !data || isPending || isPointsEqual;
 
-    currentHeroId.current = heroId;
-    const nextStatusPoints = {
-      str: data.str,
-      int: data.int,
-      agi: data.agi,
-      luk: data.luk,
-    };
-    setCurrentPoints(nextStatusPoints);
-    prevCount.current = nextStatusPoints;
-
-    return () => {
-      currentHeroId.current = null;
-      setCurrentPoints({ ...initialStats });
-    };
-  }, [data, heroId]);
-
-  const remainingPoints = useMemo(() => {
-    if (!data || currentHeroId.current !== heroId) return 0;
-    const spent = Object.values(currentPoints).reduce((acc, value) => acc + value, 0);
-    const totalPoints = data ? Object.values(data).reduce((acc, value) => acc + value, 0) : 0;
-    return Math.max(totalPoints - spent, 0);
-  }, [data, heroId, currentPoints]);
-
-  const handleIncrement = (key: TStatKey) => {
-    if (remainingPoints === 0) return;
-    setCurrentPoints((prev) => ({ ...prev, [key]: prev[key] + 1 }));
-  };
-
-  const handleDecrement = (key: TStatKey) => {
-    setCurrentPoints((prev) => {
-      if (prev[key] === 0) return prev;
-      return { ...prev, [key]: prev[key] - 1 };
-    });
-  };
-
-  const handleSave = () => {
-    updateHero.mutate(currentPoints, {
-      onSuccess: () => {
-        prevCount.current = currentPoints;
-        showToast("儲存成功");
-      },
-      onError: () => showToast("儲存失敗"),
-    });
-  };
-
-  function typedEntries<K extends string, V>(obj: Record<K, V>): [K, V][] {
-    return Object.entries(obj) as [K, V][];
-  }
-
-  const backToInit = () => {
-    setCurrentPoints({
-      str: prevCount.current.str,
-      int: prevCount.current.int,
-      agi: prevCount.current.agi,
-      luk: prevCount.current.luk,
-    });
+  const onSave = async () => {
+    try {
+      await handleSave();
+      showToast("儲存成功");
+    } catch {
+      showToast("儲存失敗");
+    }
   };
 
   return (
     <Container>
       <StatList>
-        {typedEntries(currentPoints).map(([key, value]) => {
+        {objectEntries(currentPoints).map(([key, value]) => {
           const label = key.toUpperCase();
           return (
             <StatRow key={key}>
@@ -114,14 +65,10 @@ export default function HeroProfile() {
       ) : (
         <Summary>
           <SummaryText>剩餘點數：{remainingPoints}</SummaryText>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={remainingPoints !== 0 || buttonDisabled}
-          >
-            {updateHero.isPending ? "儲存中..." : "儲存"}
+          <Button type="button" onClick={onSave} disabled={remainingPoints !== 0 || buttonDisabled}>
+            {isPending ? "儲存中..." : "儲存"}
           </Button>
-          <Button type="button" onClick={backToInit} disabled={buttonDisabled}>
+          <Button type="button" onClick={resetToSaved} disabled={buttonDisabled}>
             還原
           </Button>
         </Summary>
