@@ -1,24 +1,22 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import styled from "@emotion/styled";
 import { useHeroList } from "../../hooks/useHero";
 import SkeletonList from "../Common/SkeletonList";
-import { useState } from "react";
 
 export default function HeroListPage() {
+  const { heroId } = useParams<{ heroId: string }>();
   const { data, isLoading } = useHeroList();
-  const [activeHero, setActiveHero] = useState<string | null>(null);
 
   return (
     <CardContainer>
       {isLoading && <SkeletonList />}
       {data?.map((hero) => (
         <Card
-          active={hero.id === activeHero}
+          data-active={hero.id === heroId ? "true" : undefined}
           key={hero.id}
           to={`/heroes/${hero.id}`}
-          onClick={() => setActiveHero(hero.id)}
         >
-          <CardImage src={hero.image} />
+          <CardImage src={hero.image} alt={hero.name} />
           <CardName>{hero.name}</CardName>
         </Card>
       ))}
@@ -36,7 +34,7 @@ const CardContainer = styled.section`
   width: 100%;
 `;
 
-const Card = styled(Link)<{ active: boolean }>`
+const Card = styled(Link)`
   width: 200px;
   height: 300px;
   display: flex;
@@ -50,9 +48,11 @@ const Card = styled(Link)<{ active: boolean }>`
     transform 150ms ease,
     box-shadow 150ms ease;
 
-  border: ${({ active }) => active && "3px #ee0979 solid "};
-  transform: ${({ active }) => active && "translateY(-5px)"};
-  box-shadow: ${({ active }) => active && "10px 10px 10px rgba(0, 0, 0, 0.12)"};
+  &[data-active="true"] {
+    border: 3px #ee0979 solid;
+    transform: translateY(-5px);
+    box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.12);
+  }
 `;
 
 const CardImage = styled.img`
