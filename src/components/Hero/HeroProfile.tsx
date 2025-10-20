@@ -23,6 +23,7 @@ export default function HeroProfile() {
   } = useHeroStatPoints(heroId);
 
   const buttonDisabled = !data || isPending || isPointsEqual;
+  const dataIsNotReady = isLoading || isError;
 
   const onSave = async () => {
     try {
@@ -48,7 +49,7 @@ export default function HeroProfile() {
               >
                 +
               </AdjustButton>
-              <StatValue>{isLoading || isError ? "?" : value}</StatValue>
+              <StatValue>{dataIsNotReady ? "?" : value}</StatValue>
               <AdjustButton
                 type="button"
                 onClick={() => handleDecrement(key)}
@@ -64,7 +65,7 @@ export default function HeroProfile() {
         <Summary>😱有些東西出錯了...</Summary>
       ) : (
         <Summary>
-          <SummaryText>剩餘點數：{remainingPoints}</SummaryText>
+          <SummaryText>剩餘點數：{dataIsNotReady ? "?" : remainingPoints}</SummaryText>
           <Button type="button" onClick={onSave} disabled={remainingPoints !== 0 || buttonDisabled}>
             {isPending ? "儲存中..." : "儲存"}
           </Button>

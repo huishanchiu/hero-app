@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 
-export default function FullScreenLoader() {
+export default function Loading() {
   return (
     <Overlay role="status" aria-busy="true">
       <Spinner />
