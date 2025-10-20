@@ -203,7 +203,7 @@ describe("useHeroStatPoints", () => {
   });
 
   it("should handle save successfully", async () => {
-    mockMutate.mockImplementation(({ onSuccess }) => {
+    mockMutate.mockImplementation((_, { onSuccess }) => {
       onSuccess();
     });
 
@@ -242,7 +242,7 @@ describe("useHeroStatPoints", () => {
 
   it("should handle save error", async () => {
     const mockError = new Error("Save failed");
-    mockMutate.mockImplementation(({ onError }) => {
+    mockMutate.mockImplementation((_, { onError }) => {
       onError(mockError);
     });
 
