@@ -1,4 +1,4 @@
-export function checkIsEqualObject<T extends Record<string, unknown>>(a: T, b: T): boolean {
+export function isObjectShallowEqual<T extends Record<string, unknown>>(a: T, b: T): boolean {
   if (a === b) return true;
   if (typeof a !== "object" || typeof b !== "object" || a == null || b == null) {
     return false;
