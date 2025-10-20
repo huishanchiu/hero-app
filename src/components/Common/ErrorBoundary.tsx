@@ -9,7 +9,7 @@ export default function ErrorBoundary() {
     const status = error.response?.status;
     return (
       <Wrapper>
-        <h2>⚠️ 載入失敗（{status ?? "Unknown"}）</h2>
+        <h2>載入失敗（{status ?? "Unknown"}）</h2>
         <p>{error.message}</p>
         <Link to="/">回首頁</Link>
       </Wrapper>
@@ -18,7 +18,7 @@ export default function ErrorBoundary() {
 
   return (
     <Wrapper>
-      <h2>💥 發生未知錯誤</h2>
+      <h2>發生未知錯誤</h2>
       <Link to="/">回首頁</Link>
     </Wrapper>
   );
