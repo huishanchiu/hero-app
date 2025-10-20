@@ -1,15 +1,15 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider, QueryErrorResetBoundary } from "@tanstack/react-query";
+
+import HeroPage from "./pages/HeroPage";
+import Loading from "./components/Common/Loading";
+import { ToastProvider } from "./context/ToastProvider";
+import ErrorBoundary from "./components/Common/ErrorBoundary";
 
 import "normalize.css";
 import "./index.css";
-
-import { lazy, Suspense } from "react";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import HeroPage from "./pages/HeroPage";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import Loading from "./components/Common/Loading";
 
 const queryClient = new QueryClient();
 
@@ -22,10 +22,11 @@ const EmptyHint = () => (
 );
 
 const router = createBrowserRouter([
-  { path: "/", element: <Navigate to="/heroes" replace /> }, // 進首頁就導向 /heroes
+  { path: "/", element: <Navigate to="/heroes" replace /> },
   {
     path: "/heroes",
     element: <HeroPage />,
+    errorElement: <ErrorBoundary />,
     children: [
       { index: true, element: <EmptyHint /> },
       {
@@ -40,11 +41,14 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Suspense fallback={<Loading />}>
-        <RouterProvider router={router} />
-      </Suspense>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ToastProvider>
+      <QueryClientProvider client={queryClient}>
+        <QueryErrorResetBoundary>
+          <Suspense fallback={<Loading />}>
+            <RouterProvider router={router} />
+          </Suspense>
+        </QueryErrorResetBoundary>
+      </QueryClientProvider>
+    </ToastProvider>
   </StrictMode>
 );

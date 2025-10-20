@@ -1,70 +1,58 @@
-import { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { useHeroProfile, useUpdateHeroProfile } from "../../hooks/useHero";
 import { useParams } from "react-router-dom";
-
-type TStatKey = "str" | "int" | "agi" | "luk";
-
-const initialStats: Record<TStatKey, number> = {
-  str: 0,
-  int: 0,
-  agi: 0,
-  luk: 0,
-};
+import { objectEntries } from "../../utils/objectEntries";
+import { useHeroStatPoints } from "../../hooks/useHeroStatPoints";
+import { useToast } from "../../context/ToastProvider";
 
 export default function HeroProfile() {
   const { heroId } = useParams<{ heroId: string }>();
+  const { showToast } = useToast();
 
-  const [statusPoints, setStatusPoints] = useState(initialStats);
-  const { data, isLoading } = useHeroProfile(heroId ?? "");
-  const updateHero = useUpdateHeroProfile(heroId ?? "");
+  const {
+    currentPoints,
+    remainingPoints,
+    data,
+    isLoading,
+    isError,
+    isPointsEqual,
+    isPending,
+    handleIncrement,
+    handleDecrement,
+    handleSave,
+    resetToSaved,
+  } = useHeroStatPoints(heroId);
 
-  const TOTAL_POINTS = data ? Object.values(data).reduce((acc, value) => acc + value, 0) : 0;
+  const buttonDisabled = !data || isPending || isPointsEqual;
+  const dataIsNotReady = isLoading || isError;
 
-  useEffect(() => {
-    if (data) {
-      setStatusPoints({
-        str: data.str,
-        int: data.int,
-        agi: data.agi,
-        luk: data.luk,
-      });
+  const onSave = async () => {
+    try {
+      await handleSave();
+      showToast("儲存成功");
+    } catch {
+      showToast("儲存失敗");
     }
-  }, [data]);
-
-  const remainingPoints = useMemo(() => {
-    const spent = Object.values(statusPoints).reduce((acc, value) => acc + value, 0);
-    return Math.max(TOTAL_POINTS - spent, 0);
-  }, [TOTAL_POINTS, statusPoints]);
-
-  const handleIncrement = (key: TStatKey) => {
-    if (remainingPoints === 0) return;
-    setStatusPoints((prev) => ({ ...prev, [key]: prev[key] + 1 }));
-  };
-
-  const handleDecrement = (key: TStatKey) => {
-    setStatusPoints((prev) => {
-      if (prev[key] === 0) return prev;
-      return { ...prev, [key]: prev[key] - 1 };
-    });
   };
 
   return (
     <Container>
       <StatList>
-        {Object.entries(statusPoints).map(([key, value]) => {
+        {objectEntries(currentPoints).map(([key, value]) => {
           const label = key.toUpperCase();
-
           return (
             <StatRow key={key}>
               <StatLabel>{label}</StatLabel>
-              <AdjustButton type="button" onClick={() => handleIncrement(key as TStatKey)}>
-                +
-              </AdjustButton>
-              <StatValue>{value}</StatValue>
               <AdjustButton
                 type="button"
-                onClick={() => handleDecrement(key as TStatKey)}
+                onClick={() => handleIncrement(key)}
+                disabled={remainingPoints === 0}
+              >
+                +
+              </AdjustButton>
+              <StatValue>{dataIsNotReady ? "?" : value}</StatValue>
+              <AdjustButton
+                type="button"
+                onClick={() => handleDecrement(key)}
                 disabled={value === 0}
               >
                 -
@@ -73,18 +61,19 @@ export default function HeroProfile() {
           );
         })}
       </StatList>
-      {TOTAL_POINTS}
-      <Summary>
-        <SummaryText>剩餘點數：{remainingPoints}</SummaryText>
-        <SaveButton
-          onClick={() => {
-            updateHero.mutate(statusPoints);
-          }}
-          disabled={remainingPoints !== 0}
-        >
-          儲存
-        </SaveButton>
-      </Summary>
+      {isError ? (
+        <Summary>😱有些東西出錯了...</Summary>
+      ) : (
+        <Summary>
+          <SummaryText>剩餘點數：{dataIsNotReady ? "?" : remainingPoints}</SummaryText>
+          <Button type="button" onClick={onSave} disabled={remainingPoints !== 0 || buttonDisabled}>
+            {isPending ? "儲存中..." : "儲存"}
+          </Button>
+          <Button type="button" onClick={resetToSaved} disabled={buttonDisabled}>
+            還原
+          </Button>
+        </Summary>
+      )}
     </Container>
   );
 }
@@ -141,15 +130,12 @@ const AdjustButton = styled.button`
     cursor: not-allowed;
     transform: none;
   }
-
-  &:hover:not(:disabled),
-  &:focus-visible:not(:disabled) {
-    transform: translateY(-2px);
-  }
 `;
 
 const Summary = styled.div`
+  font-weight: 600;
   display: flex;
+  font-size: 20px;
   justify-content: flex-end;
   flex-direction: column;
   align-items: flex-start;
@@ -158,13 +144,12 @@ const Summary = styled.div`
 `;
 
 const SummaryText = styled.div`
-  font-size: 18px;
   display: flex;
   gap: 6px;
   align-items: baseline;
 `;
 
-const SaveButton = styled.button`
+const Button = styled.button`
   min-width: 140px;
   padding: 12px 16px;
   border: 2px solid #1f2937;
