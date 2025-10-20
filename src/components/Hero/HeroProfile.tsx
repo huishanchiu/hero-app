@@ -1,74 +1,106 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { useHeroProfile, useUpdateHeroProfile } from "../../hooks/useHero";
 import { useParams } from "react-router-dom";
+import { useToast } from "../../context/ToastProvider";
+import { checkIsEqualObject } from "../../utils/checkIsEqualObject";
+import type { TStatKey } from "../../type/HeroType";
 
-type TStatKey = "str" | "int" | "agi" | "luk";
-
-const initialStats: Record<TStatKey, number> = {
-  str: 0,
-  int: 0,
-  agi: 0,
-  luk: 0,
-};
+const initialStats: Record<TStatKey, number> = { str: 0, int: 0, agi: 0, luk: 0 };
 
 export default function HeroProfile() {
   const { heroId } = useParams<{ heroId: string }>();
 
-  const [statusPoints, setStatusPoints] = useState(initialStats);
-  const { data } = useHeroProfile(heroId ?? "");
+  const [currentPoints, setCurrentPoints] = useState(initialStats);
+  const currentHeroId = useRef<string | null>(null);
+  const prevCount = useRef(initialStats);
+  const { data, isLoading, isError } = useHeroProfile(heroId ?? "");
   const updateHero = useUpdateHeroProfile(heroId ?? "");
+  const { showToast } = useToast();
 
-  const TOTAL_POINTS = data ? Object.values(data).reduce((acc, value) => acc + value, 0) : 0;
+  const isPointsEqual = checkIsEqualObject(currentPoints, prevCount.current);
+  const buttonDisabled = !data || updateHero.isPending || isPointsEqual;
 
   useEffect(() => {
-    if (data) {
-      setStatusPoints({
-        str: data.str,
-        int: data.int,
-        agi: data.agi,
-        luk: data.luk,
-      });
-    }
-  }, [data]);
+    if (!heroId || !data) return;
+
+    currentHeroId.current = heroId;
+    const nextStatusPoints = {
+      str: data.str,
+      int: data.int,
+      agi: data.agi,
+      luk: data.luk,
+    };
+    setCurrentPoints(nextStatusPoints);
+    prevCount.current = nextStatusPoints;
+
+    return () => {
+      currentHeroId.current = null;
+      setCurrentPoints({ ...initialStats });
+    };
+  }, [data, heroId]);
 
   const remainingPoints = useMemo(() => {
-    const spent = Object.values(statusPoints).reduce((acc, value) => acc + value, 0);
-    return Math.max(TOTAL_POINTS - spent, 0);
-  }, [TOTAL_POINTS, statusPoints]);
+    if (!data || currentHeroId.current !== heroId) return 0;
+    const spent = Object.values(currentPoints).reduce((acc, value) => acc + value, 0);
+    const totalPoints = data ? Object.values(data).reduce((acc, value) => acc + value, 0) : 0;
+    return Math.max(totalPoints - spent, 0);
+  }, [data, heroId, currentPoints]);
 
   const handleIncrement = (key: TStatKey) => {
     if (remainingPoints === 0) return;
-    setStatusPoints((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+    setCurrentPoints((prev) => ({ ...prev, [key]: prev[key] + 1 }));
   };
 
   const handleDecrement = (key: TStatKey) => {
-    setStatusPoints((prev) => {
+    setCurrentPoints((prev) => {
       if (prev[key] === 0) return prev;
       return { ...prev, [key]: prev[key] - 1 };
+    });
+  };
+
+  const handleSave = () => {
+    updateHero.mutate(currentPoints, {
+      onSuccess: () => {
+        prevCount.current = currentPoints;
+        showToast("儲存成功");
+      },
+      onError: () => showToast("儲存失敗"),
+    });
+  };
+
+  function typedEntries<K extends string, V>(obj: Record<K, V>): [K, V][] {
+    return Object.entries(obj) as [K, V][];
+  }
+
+  const backToInit = () => {
+    setCurrentPoints({
+      str: prevCount.current.str,
+      int: prevCount.current.int,
+      agi: prevCount.current.agi,
+      luk: prevCount.current.luk,
     });
   };
 
   return (
     <Container>
       <StatList>
-        {Object.entries(statusPoints).map(([key, value]) => {
+        {typedEntries(currentPoints).map(([key, value]) => {
           const label = key.toUpperCase();
-
           return (
             <StatRow key={key}>
               <StatLabel>{label}</StatLabel>
               <AdjustButton
                 type="button"
-                onClick={() => handleIncrement(key as TStatKey)}
+                onClick={() => handleIncrement(key)}
                 disabled={remainingPoints === 0}
               >
                 +
               </AdjustButton>
-              <StatValue>{value}</StatValue>
+              <StatValue>{isLoading || isError ? "?" : value}</StatValue>
               <AdjustButton
                 type="button"
-                onClick={() => handleDecrement(key as TStatKey)}
+                onClick={() => handleDecrement(key)}
                 disabled={value === 0}
               >
                 -
@@ -77,18 +109,23 @@ export default function HeroProfile() {
           );
         })}
       </StatList>
-      <Summary>
-        <SummaryText>剩餘點數：{remainingPoints}</SummaryText>
-        <SaveButton
-          type="button"
-          onClick={() => {
-            updateHero.mutate(statusPoints);
-          }}
-          disabled={remainingPoints !== 0}
-        >
-          {updateHero.isPending ? "儲存中..." : "儲存"}
-        </SaveButton>
-      </Summary>
+      {isError ? (
+        <Summary>😱有些東西出錯了...</Summary>
+      ) : (
+        <Summary>
+          <SummaryText>剩餘點數：{remainingPoints}</SummaryText>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={remainingPoints !== 0 || buttonDisabled}
+          >
+            {updateHero.isPending ? "儲存中..." : "儲存"}
+          </Button>
+          <Button type="button" onClick={backToInit} disabled={buttonDisabled}>
+            還原
+          </Button>
+        </Summary>
+      )}
     </Container>
   );
 }
@@ -145,15 +182,12 @@ const AdjustButton = styled.button`
     cursor: not-allowed;
     transform: none;
   }
-
-  &:hover:not(:disabled),
-  &:focus-visible:not(:disabled) {
-    transform: translateY(-2px);
-  }
 `;
 
 const Summary = styled.div`
+  font-weight: 600;
   display: flex;
+  font-size: 20px;
   justify-content: flex-end;
   flex-direction: column;
   align-items: flex-start;
@@ -162,13 +196,12 @@ const Summary = styled.div`
 `;
 
 const SummaryText = styled.div`
-  font-size: 18px;
   display: flex;
   gap: 6px;
   align-items: baseline;
 `;
 
-const SaveButton = styled.button`
+const Button = styled.button`
   min-width: 140px;
   padding: 12px 16px;
   border: 2px solid #1f2937;

@@ -6,6 +6,9 @@ export function useHeroList() {
   return useQuery({
     queryKey: ["heroes"],
     queryFn: heroAPI.fetchHeroList,
+    throwOnError: true,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 }
 
@@ -22,6 +25,9 @@ export function useHeroProfile(heroId: string) {
     queryKey: ["heroProfile", heroId],
     queryFn: () => heroAPI.fetchHeroProfile(heroId),
     enabled: !!heroId,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 }
 
@@ -31,7 +37,6 @@ export function useUpdateHeroProfile(heroId: string) {
   return useMutation({
     mutationFn: (profile: IHeroProfile) => heroAPI.updateHeroProfile({ heroId, profile }),
     onSuccess: () => {
-      // PATCH 成功後，重新抓資料
       queryClient.invalidateQueries({ queryKey: ["heroProfile", heroId] });
     },
   });
