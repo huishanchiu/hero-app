@@ -2,7 +2,7 @@ import axios from "axios";
 import CustomError from "./CustomError";
 
 export const apiClient = axios.create({
-  baseURL: "https://hahow-recruit.herokuapp.com",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://hahow-recruit.herokuapp.com",
   headers: {
     "Content-Type": "application/json",
   },

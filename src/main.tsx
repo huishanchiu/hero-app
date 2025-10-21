@@ -47,6 +47,8 @@ const router = createBrowserRouter([
   { path: "*", element: <div style={{ padding: 24 }}>404 Not Found</div> },
 ]);
 
+const isDEV = import.meta.env.VITE_APP_ENV === "development";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ToastProvider>
@@ -55,7 +57,7 @@ createRoot(document.getElementById("root")!).render(
           <Suspense fallback={<Loading />}>
             <RouterProvider router={router} />
           </Suspense>
-          <ReactQueryDevtools initialIsOpen={false} />
+          {isDEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryErrorResetBoundary>
       </QueryClientProvider>
     </ToastProvider>
