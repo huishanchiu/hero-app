@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { useHeroStatPoints } from "./useHeroStatPoints";
 import { createWrapper } from "../test/testUtils";
-import * as useHeroModule from "./useHero";
+import * as useHeroModule from "./useHeroData";
 import type { IHeroProfile } from "../type/HeroType";
 
 vi.mock("./useHero");

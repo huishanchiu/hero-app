@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useHeroProfile, useUpdateHeroProfile } from "./useHero";
+import { useHeroProfile, useUpdateHeroProfile } from "./useHeroData";
 import { isObjectShallowEqual } from "../utils/isObjectShallowEqual";
 import type { TStatKey } from "../type/HeroType";
 
@@ -13,6 +13,7 @@ export function useHeroStatPoints(heroId: string | undefined) {
   const updateHero = useUpdateHeroProfile(heroId ?? "");
 
   const isPointsEqual = isObjectShallowEqual(currentPoints, prevCount.current);
+
   const remainingPoints = useMemo(() => {
     if (!data || currentHeroId.current !== heroId) return 0;
     const spent = Object.values(currentPoints).reduce((acc, value) => acc + value, 0);

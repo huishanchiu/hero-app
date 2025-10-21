@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import styled from "@emotion/styled";
-import { useHeroList } from "../../hooks/useHero";
+import { useHeroList } from "../../hooks/useHeroData";
 import SkeletonList from "../Common/SkeletonList";
 
 export default function HeroListPage() {
