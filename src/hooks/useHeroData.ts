@@ -28,7 +28,6 @@ export function useHeroProfile(heroId: string) {
 
 export function useUpdateHeroProfile(heroId: string) {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (profile: IHeroProfile) => heroAPI.updateHeroProfile({ heroId, profile }),
     onSuccess: () => {

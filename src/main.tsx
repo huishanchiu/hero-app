@@ -11,7 +11,15 @@ import ErrorBoundary from "./components/Common/ErrorBoundary";
 import "normalize.css";
 import "./index.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: 5 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const HeroProfile = lazy(() => import("./components/Hero/HeroProfile"));
 
