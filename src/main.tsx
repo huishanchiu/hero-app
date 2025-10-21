@@ -2,7 +2,7 @@ import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider, QueryErrorResetBoundary } from "@tanstack/react-query";
-
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import HeroPage from "./pages/HeroPage";
 import Loading from "./components/Common/Loading";
 import { ToastProvider } from "./context/ToastProvider";
@@ -47,6 +47,7 @@ createRoot(document.getElementById("root")!).render(
           <Suspense fallback={<Loading />}>
             <RouterProvider router={router} />
           </Suspense>
+          <ReactQueryDevtools initialIsOpen={false} />
         </QueryErrorResetBoundary>
       </QueryClientProvider>
     </ToastProvider>
