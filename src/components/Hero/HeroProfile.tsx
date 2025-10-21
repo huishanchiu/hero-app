@@ -1,8 +1,10 @@
 import styled from "@emotion/styled";
-import { useParams } from "react-router-dom";
+import { useParams, useBlocker } from "react-router-dom";
 import { objectEntries } from "../../utils/objectEntries";
 import { useHeroStatPoints } from "../../hooks/useHeroStatPoints";
 import { useToast } from "../../context/ToastProvider";
+import Loading from "../Common/Loading";
+import CustomModal from "../Common/CustomModal";
 
 export default function HeroProfile() {
   const { heroId } = useParams<{ heroId: string }>();
@@ -25,6 +27,12 @@ export default function HeroProfile() {
   const buttonDisabled = !data || isPending || isPointsEqual;
   const dataIsNotReady = isLoading || isError;
 
+  // 當有未儲存的變更時，阻擋路由切換
+  const routerBlocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      !isPointsEqual && currentLocation.pathname !== nextLocation.pathname
+  );
+
   const onSave = async () => {
     try {
       await handleSave();
@@ -36,6 +44,17 @@ export default function HeroProfile() {
 
   return (
     <Container>
+      {(isLoading || isPending) && <Loading />}
+      {routerBlocker.state === "blocked" && (
+        <CustomModal
+          title="尚未儲存"
+          contents="你有未儲存的變更，確定要離開嗎？"
+          onClose={() => routerBlocker.reset()}
+          onConfirm={() => routerBlocker.proceed()}
+          closeText="離開"
+          confirmText="  取消"
+        />
+      )}
       <StatList>
         {objectEntries(currentPoints).map(([key, value]) => {
           const label = key.toUpperCase();
