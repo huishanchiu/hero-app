@@ -2,7 +2,9 @@ import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider, QueryErrorResetBoundary } from "@tanstack/react-query";
-
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ThemeProvider } from "@emotion/react";
+import { theme } from "./style/theme.emotion";
 import HeroPage from "./pages/HeroPage";
 import Loading from "./components/Common/Loading";
 import { ToastProvider } from "./context/ToastProvider";
@@ -11,7 +13,15 @@ import ErrorBoundary from "./components/Common/ErrorBoundary";
 import "normalize.css";
 import "./index.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: 5 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const HeroProfile = lazy(() => import("./components/Hero/HeroProfile"));
 
@@ -39,16 +49,21 @@ const router = createBrowserRouter([
   { path: "*", element: <div style={{ padding: 24 }}>404 Not Found</div> },
 ]);
 
+const isDEV = import.meta.env.VITE_APP_ENV === "development";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ToastProvider>
-      <QueryClientProvider client={queryClient}>
-        <QueryErrorResetBoundary>
-          <Suspense fallback={<Loading />}>
-            <RouterProvider router={router} />
-          </Suspense>
-        </QueryErrorResetBoundary>
-      </QueryClientProvider>
-    </ToastProvider>
+    <ThemeProvider theme={theme}>
+      <ToastProvider>
+        <QueryClientProvider client={queryClient}>
+          <QueryErrorResetBoundary>
+            <Suspense fallback={<Loading />}>
+              <RouterProvider router={router} />
+            </Suspense>
+            {isDEV && <ReactQueryDevtools initialIsOpen={false} />}
+          </QueryErrorResetBoundary>
+        </QueryClientProvider>
+      </ToastProvider>
+    </ThemeProvider>
   </StrictMode>
 );

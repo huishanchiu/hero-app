@@ -7,15 +7,13 @@ export function useHeroList() {
     queryKey: ["heroes"],
     queryFn: heroAPI.fetchHeroList,
     throwOnError: true,
-    refetchOnWindowFocus: false,
-    retry: 1,
   });
 }
 
 export function useHeroDetail(heroId: string) {
   return useQuery({
     queryKey: ["heroDetail", heroId],
-    queryFn: () => heroAPI.fetchHeroDetail(heroId),
+    queryFn: ({ signal }) => heroAPI.fetchHeroProfile(heroId, { signal }),
     enabled: !!heroId,
   });
 }
@@ -23,17 +21,13 @@ export function useHeroDetail(heroId: string) {
 export function useHeroProfile(heroId: string) {
   return useQuery({
     queryKey: ["heroProfile", heroId],
-    queryFn: () => heroAPI.fetchHeroProfile(heroId),
+    queryFn: ({ signal }) => heroAPI.fetchHeroProfile(heroId, { signal }),
     enabled: !!heroId,
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
-    retry: 1,
   });
 }
 
 export function useUpdateHeroProfile(heroId: string) {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (profile: IHeroProfile) => heroAPI.updateHeroProfile({ heroId, profile }),
     onSuccess: () => {

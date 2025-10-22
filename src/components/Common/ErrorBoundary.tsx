@@ -1,15 +1,14 @@
-import axios from "axios";
 import { useRouteError, Link } from "react-router-dom";
 import styled from "@emotion/styled";
+import CustomError from "../../api/CustomError";
 
 export default function ErrorBoundary() {
   const error = useRouteError();
 
-  if (axios.isAxiosError(error)) {
-    const status = error.response?.status;
+  if (error instanceof CustomError) {
     return (
       <Wrapper>
-        <h2>載入失敗（{status ?? "Unknown"}）</h2>
+        <h2>載入失敗（{error.httpStatus ?? "Unknown"}）</h2>
         <p>{error.message}</p>
         <Link to="/">回首頁</Link>
       </Wrapper>

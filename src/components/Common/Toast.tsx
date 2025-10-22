@@ -30,7 +30,7 @@ const ToastWrapper = styled.div`
   padding: 12px 18px;
   border-radius: 10px;
   color: #fff;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: ${(props) => props.theme.colorTransparent600};
   font-weight: 600;
   opacity: 0;
   transform: translateY(-10px);

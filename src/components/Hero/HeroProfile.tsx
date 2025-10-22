@@ -1,8 +1,11 @@
 import styled from "@emotion/styled";
-import { useParams } from "react-router-dom";
+import { useParams, useBlocker } from "react-router-dom";
 import { objectEntries } from "../../utils/objectEntries";
 import { useHeroStatPoints } from "../../hooks/useHeroStatPoints";
 import { useToast } from "../../context/ToastProvider";
+import Loading from "../Common/Loading";
+import CustomModal from "../Common/CustomModal";
+import breakpoints from "../../style/breakPoint";
 
 export default function HeroProfile() {
   const { heroId } = useParams<{ heroId: string }>();
@@ -25,6 +28,12 @@ export default function HeroProfile() {
   const buttonDisabled = !data || isPending || isPointsEqual;
   const dataIsNotReady = isLoading || isError;
 
+  // 當有未儲存的變更時，阻擋路由切換
+  const routerBlocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      !isPointsEqual && currentLocation.pathname !== nextLocation.pathname
+  );
+
   const onSave = async () => {
     try {
       await handleSave();
@@ -36,6 +45,17 @@ export default function HeroProfile() {
 
   return (
     <Container>
+      {(isLoading || isPending) && <Loading />}
+      {routerBlocker.state === "blocked" && (
+        <CustomModal
+          title="尚未儲存"
+          contents="你有未儲存的變更，確定要離開嗎？"
+          onClose={() => routerBlocker.reset()}
+          onConfirm={() => routerBlocker.proceed()}
+          closeText="離開"
+          confirmText="  取消"
+        />
+      )}
       <StatList>
         {objectEntries(currentPoints).map(([key, value]) => {
           const label = key.toUpperCase();
@@ -82,7 +102,10 @@ const Container = styled.section`
   display: flex;
   justify-content: space-around;
   padding: 24px;
-  border: 2px solid #1f2937;
+  border: 2px solid ${(props) => props.theme.colorNeutral800};
+  @media (max-width: ${breakpoints.minDesktop}) {
+    flex-direction: column;
+  }
 `;
 
 const StatList = styled.div`
@@ -95,31 +118,37 @@ const StatRow = styled.div`
   grid-template-columns: 60px repeat(3, 56px);
   align-items: center;
   gap: 12px;
+
+  @media (max-width: ${breakpoints.minDesktop}) {
+    grid-template-columns: 65px repeat(3, 58px);
+    gap: 12px;
+  }
 `;
 
-const StatLabel = styled.span`
-  font-size: 18px;
+const Text = styled.span`
   font-weight: 600;
-  color: #1f2937;
+  color: ${(props) => props.theme.colorNeutral800};
+`;
+
+const StatLabel = styled(Text)`
+  font-size: 18px;
   text-align: left;
 `;
 
-const StatValue = styled.span`
+const StatValue = styled(Text)`
   font-size: 20px;
-  font-weight: 600;
   text-align: center;
-  color: #1f2937;
 `;
 
 const AdjustButton = styled.button`
   width: 48px;
-  height: 48px;
+  aspect-ratio: 1/1;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid #1f2937;
+  border: 2px solid ${(props) => props.theme.colorNeutral800};
   border-radius: 8px;
-  background: #f9fafb;
+  background: ${(props) => props.theme.colorNeutral200};
   font-size: 24px;
   font-weight: 600;
   cursor: pointer;
@@ -141,6 +170,10 @@ const Summary = styled.div`
   align-items: flex-start;
   gap: 16px;
   min-width: 180px;
+  @media (max-width: ${breakpoints.minDesktop}) {
+    padding-top: 30px;
+    align-items: center;
+  }
 `;
 
 const SummaryText = styled.div`
@@ -152,10 +185,10 @@ const SummaryText = styled.div`
 const Button = styled.button`
   min-width: 140px;
   padding: 12px 16px;
-  border: 2px solid #1f2937;
+  border: 2px solid ${(props) => props.theme.colorNeutral800};
   border-radius: 8px;
-  background: #f3f4f6;
-  color: #1f2937;
+  background: ${(props) => props.theme.colorNeutral200};
+  color: ${(props) => props.theme.colorNeutral800};
   font-size: 18px;
   font-weight: 600;
   cursor: pointer;
