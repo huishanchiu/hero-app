@@ -3,18 +3,18 @@ import styled from "@emotion/styled";
 type Props = {
   title: string;
   contents: string;
-  closeText: string;
+  cancelText: string;
   confirmText: string;
-  onClose: () => void;
+  onCancel: () => void;
   onConfirm: () => void;
 };
 
 export default function CustomModal({
   title,
   contents,
-  onClose,
+  onCancel,
   onConfirm,
-  closeText,
+  cancelText,
   confirmText,
 }: Props) {
   return (
@@ -24,8 +24,8 @@ export default function CustomModal({
         <ModalMessage>{contents}</ModalMessage>
         <ModalButtons>
           <ModalButton onClick={onConfirm}>{confirmText}</ModalButton>
-          <ModalButton primary onClick={onClose}>
-            {closeText}
+          <ModalButton primary onClick={onCancel}>
+            {cancelText}
           </ModalButton>
         </ModalButtons>
       </ModalContent>
