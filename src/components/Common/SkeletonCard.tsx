@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { SkeletonStyle } from "./style";
+import { SkeletonStyle } from "../../style";
 import breakpoints from "../../style/breakPoint";
 
 export default function SkeletonCard() {
