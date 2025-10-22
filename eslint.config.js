@@ -32,6 +32,10 @@ export default defineConfig([
           selector: "interface",
           format: ["PascalCase"],
           prefix: ["I"],
+          filter: {
+            regex: "^Theme$",
+            match: false,
+          },
         },
         {
           selector: "typeAlias",

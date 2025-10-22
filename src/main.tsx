@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider, QueryErrorResetBoundary } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ThemeProvider } from "@emotion/react";
+import { theme } from "./style/theme.emotion";
 import HeroPage from "./pages/HeroPage";
 import Loading from "./components/Common/Loading";
 import { ToastProvider } from "./context/ToastProvider";
@@ -51,15 +53,17 @@ const isDEV = import.meta.env.VITE_APP_ENV === "development";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ToastProvider>
-      <QueryClientProvider client={queryClient}>
-        <QueryErrorResetBoundary>
-          <Suspense fallback={<Loading />}>
-            <RouterProvider router={router} />
-          </Suspense>
-          {isDEV && <ReactQueryDevtools initialIsOpen={false} />}
-        </QueryErrorResetBoundary>
-      </QueryClientProvider>
-    </ToastProvider>
+    <ThemeProvider theme={theme}>
+      <ToastProvider>
+        <QueryClientProvider client={queryClient}>
+          <QueryErrorResetBoundary>
+            <Suspense fallback={<Loading />}>
+              <RouterProvider router={router} />
+            </Suspense>
+            {isDEV && <ReactQueryDevtools initialIsOpen={false} />}
+          </QueryErrorResetBoundary>
+        </QueryClientProvider>
+      </ToastProvider>
+    </ThemeProvider>
   </StrictMode>
 );

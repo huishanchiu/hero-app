@@ -39,7 +39,7 @@ const Modal = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: ${(props) => props.theme.colorTransparent400};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -57,13 +57,13 @@ const ModalContent = styled.div`
 const ModalTitle = styled.h2`
   margin: 0 0 16px 0;
   font-size: 22px;
-  color: #1f2937;
+  color: ${(props) => props.theme.colorNeutral800};
 `;
 
 const ModalMessage = styled.p`
   margin: 0 0 24px 0;
   font-size: 16px;
-  color: #4b5563;
+  color: ${(props) => props.theme.colorNeutral700};
 `;
 
 const ModalButtons = styled.div`
@@ -75,15 +75,12 @@ const ModalButtons = styled.div`
 const ModalButton = styled.button<{ primary?: boolean }>`
   padding: 10px 20px;
   border-radius: 8px;
-  background: ${(props) => (props.primary ? "#505050" : "#fff")};
-  color: ${(props) => (props.primary ? "#fff" : "#5e5e5e")};
+  background: ${(props) =>
+    props.primary ? props.theme.colorNeutral500 : props.theme.colorNeutral100};
+  color: ${(props) => (props.primary ? props.theme.colorNeutral100 : props.theme.colorNeutral500)};
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;
-  border: #5e5e5e solid 1px;
-
-  &:hover {
-    opacity: 0.8;
-  }
+  border: solid 1px ${(props) => props.theme.colorNeutral500};
 `;

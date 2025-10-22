@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { SkeletonStyle } from "./style";
+import breakpoints from "../../style/breakPoint";
 
 export default function SkeletonCard() {
   return (
@@ -12,12 +13,15 @@ export default function SkeletonCard() {
 
 const Wrapper = styled.div`
   width: 200px;
-  height: 300px;
+  aspect-ratio: 6/9;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 16px;
-  outline: #000 solid 1px;
+  outline: solid 1px ${(props) => props.theme.colorNeutral900};
+  @media (max-width: ${breakpoints.minDesktop}) {
+    width: 300px;
+  }
 `;
 
 const Avatar = styled.div`
