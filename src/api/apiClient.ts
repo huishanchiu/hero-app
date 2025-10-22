@@ -20,6 +20,6 @@ apiClient.interceptors.response.use(
     }
 
     // 網路錯誤（沒有 response）
-    return Promise.reject(new CustomError(0, error.statusText || "Network Error"));
+    return Promise.reject(new CustomError(0, error.message || "Network Error"));
   }
 );
