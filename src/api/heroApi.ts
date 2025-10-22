@@ -23,7 +23,6 @@ const heroAPI: IHeroAPI = {
     return data;
   },
   fetchHeroProfile: async (heroId, config) => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     const { data } = await apiClient.get<IHeroProfile>(`/heroes/${heroId}/profile`, config);
     return data;
   },

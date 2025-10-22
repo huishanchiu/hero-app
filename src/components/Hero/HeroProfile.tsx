@@ -50,10 +50,10 @@ export default function HeroProfile() {
         <CustomModal
           title="尚未儲存"
           contents="你有未儲存的變更，確定要離開嗎？"
-          onClose={() => routerBlocker.reset()}
           onConfirm={() => routerBlocker.proceed()}
-          closeText="離開"
-          confirmText="  取消"
+          onCancel={() => routerBlocker.reset()}
+          confirmText="離開此頁面"
+          cancelText="留在此頁面"
         />
       )}
       <StatList>

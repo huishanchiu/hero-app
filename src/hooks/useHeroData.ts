@@ -13,7 +13,7 @@ export function useHeroList() {
 export function useHeroDetail(heroId: string) {
   return useQuery({
     queryKey: ["heroDetail", heroId],
-    queryFn: ({ signal }) => heroAPI.fetchHeroProfile(heroId, { signal }),
+    queryFn: ({ signal }) => heroAPI.fetchHeroDetail(heroId, { signal }),
     enabled: !!heroId,
   });
 }
